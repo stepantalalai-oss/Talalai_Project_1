@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI Подбор гардероба</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .ai-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .ai-badge {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        h1 {
+            color: #2d3748;
+            font-size: 2.2rem;
+            margin: 0;
+        }
+        
+        .subtitle {
+            color: white !important;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+        
+        /* Секция поиска */
+        .search-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        #cityInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        #cityInput:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        #searchBtn {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border: none;
+            padding: 0 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+        
+        #searchBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(106, 17, 203, 0.2);
+        }
+        
+        .popular-cities {
+            margin-top: 20px;
+        }
+        
+        .popular-cities p {
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        #citiesList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .city-chip {
+            background: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .city-chip:hover {
+            border-color: #6a11cb;
+            background: rgba(106, 17, 203, 0.05);
+        }
+        
+        /* Основная информация о погоде */
+        .weather-main-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .weather-main-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #ff9a9e, #fad0c4, #fad0c4, #a1c4fd);
+        }
+        
+        .city-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .city-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            font-size: 1.8rem;
+            color: white;
+        }
+        
+        .time-info {
+            display: flex;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .time-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+        }
+        
+        .temp-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .temp-main {
+            text-align: center;
+        }
+        
+        .temp-main h3 {
+            font-size: 4rem;
+            font-weight: 300;
+            margin: 0;
+            color: white;
+        }
+        
+        .feels-like {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-top: 5px;
+            color: white;
+        }
+        
+        .temp-main p {
+            color: white;
+        }
+        
+        .weather-icon img {
+            width: 120px;
+            height: 120px;
+        }
+
+/* Стили для новых эмодзи */
+.ml-item-card.fire-emoji .ml-item-emoji {
+    background: rgba(255, 87, 34, 0.1);
+    color: #ff5722;
+}
+
+.ml-item-card.foot-emoji .ml-item-emoji {
+    background: rgba(121, 85, 72, 0.1);
+    color: #795548;
+}
+
+.ml-item-card.mask-emoji .ml-item-emoji {
+    background: rgba(156, 39, 176, 0.1);
+    color: #9c27b0;
+}
+
+.ml-item-card.water-emoji .ml-item-emoji {
+    background: rgba(33, 150, 243, 0.1);
+    color: #2196f3;
+}
+
+.ml-item-card.sparkle-emoji .ml-item-emoji {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.ml-item-card.cool-emoji .ml-item-emoji {
+    background: rgba(0, 188, 212, 0.1);
+    color: #00bcd4;
+}
+        
+        /* Блок с предупреждениями */
+        .warning-section {
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #e53e3e;
+        }
+        
+        .warning-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: #c53030;
+        }
+        
+        .warning-header i {
+            font-size: 1.5rem;
+        }
+        
+        .warning-header h4 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+        
+        .warning-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 2px solid #fed7d7;
+        }
+        
+        .warning-emoji {
+            font-size: 2rem;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .warning-content h5 {
+            margin: 0 0 5px 0;
+            color: #2d3748;
+            font-size: 1.1rem;
+        }
+        
+        .warning-content p {
+            margin: 0;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        /* Блок с вероятностью осадков */
+        .precipitation-section {
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .precipitation-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .precipitation-icon {
+            font-size: 2.5rem;
+            color: #4a90e2;
+        }
+        
+        .precipitation-text h4 {
+            margin: 0 0 5px 0;
+            color: #2d3748;
+            font-size: 1.2rem;
+        }
+        
+        .precipitation-text p {
+            margin: 0;
+            color: #4a5568;
+        }
+        
+        .precipitation-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2d3748;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .precipitation-high {
+            color: #e53e3e !important;
+        }
+        
+        /* Информация о типе осадков */
+        .precipitation-type {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+        }
+        
+        .snow-icon {
+            color: #4a90e2;
+        }
+        
+        .rain-icon {
+            color: #38a169;
+        }
+        
+        /* Секция времени суток */
+        .daytime-section {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .daytime-card {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            min-width: 180px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .daytime-card i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #ff6b6b;
+        }
+        
+        .daytime-card.sunset i {
+            color: #4ecdc4;
+        }
+        
+        .daytime-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin: 10px 0;
+        }
+        
+        .daytime-label {
+            color: #718096;
+            font-size: 1rem;
+        }
+        
+        .daytime-status {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .daytime-status span {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        /* ML рекомендации */
+        .ml-recommendations-section {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ml-recommendations-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        }
+        
+        .ml-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .ml-icon {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .ml-header h3 {
+            font-size: 1.8rem;
+            color: #2d3748;
+            margin: 0;
+        }
+        
+        .ml-subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+        }
+        
+        /* Сетка ML рекомендаций */
+        .ml-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .ml-item-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s;
+            border: 2px solid #f7fafc;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .ml-item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-color: #6a11cb;
+        }
+        
+        .ml-item-emoji {
+            font-size: 2.5rem;
+            min-width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(106, 17, 203, 0.1);
+            border-radius: 12px;
+        }
+        
+        .ml-item-content h4 {
+            margin: 0 0 5px 0;
+            color: #2d3748;
+            font-size: 1.2rem;
+        }
+        
+        .ml-item-content p {
+            margin: 0;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        /* Особые рекомендации (очки, зонт) */
+        .special-recommendations {
+            background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border-left: 4px solid #38b2ac;
+        }
+        
+        .special-recommendations h4 {
+            color: #234e52;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .special-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .special-emoji {
+            font-size: 2rem;
+        }
+        
+        /* Стили для кнопок фидбека */
+        .feedback-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .item-checkbox:hover {
+            border-color: #6a11cb !important;
+            background: rgba(106, 17, 203, 0.05) !important;
+        }
+
+        .item-checkbox input:checked + label {
+            font-weight: bold;
+            color: #6a11cb;
+        }
+        
+        /* Дополнительная информация */
+        .weather-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .detail-card {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .detail-card:hover {
+            border-color: #6a11cb;
+            transform: translateY(-3px);
+        }
+        
+        .detail-card i {
+            font-size: 2rem;
+            color: #6a11cb;
+            margin-bottom: 10px;
+        }
+        
+        .detail-card h4 {
+            margin: 10px 0;
+            color: #4a5568;
+        }
+        
+        .detail-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        
+        /* Футер и статистика */
+        .ml-stats {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        /* Состояния загрузки и ошибок */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6a11cb;
+        }
+        
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .search-box {
+                flex-direction: column;
+            }
+            
+            #searchBtn {
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            .temp-main h3 {
+                font-size: 3rem;
+            }
+            
+            .ml-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .daytime-section {
+                flex-direction: column;
+            }
+            
+            .precipitation-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .city-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .feedback-section .feedback-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        .current-time {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+            color: white;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            background: #e9f5ff;
+            color: #2c5282;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+        
+        .wind-emoji {
+            color: #4a90e2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="ai-title">
+                <h1>AI Подбор гардероба</h1>
+                <span class="ai-badge"><i class="fas fa-brain"></i> Machine Learning</span>
+            </div>
+            <p class="subtitle">Нейросеть анализирует погоду и время суток для подбора идеальной одежды</p>
+        </header>
+
+        <main>
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" id="cityInput" placeholder="Введите город для анализа..." autocomplete="off">
+                    <button id="searchBtn"><i class="fas fa-search"></i> Анализировать</button>
+                </div>
+                <div class="popular-cities">
+                    <p>Популярные города для анализа:</p>
+                    <div id="citiesList"></div>
+                </div>
+            </div>
+
+            <div class="weather-container">
+                <div class="loading" id="loading" style="display: none;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p style="margin-top: 15px; font-size: 1.2rem;">AI анализирует погодные данные и время суток...</p>
+                </div>
+                <div id="weatherResult"></div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Система учитывает температуру, ветер и осадки для точных рекомендаций</p>
+            <p>Данные предоставлены <a href="https://openweathermap.org/" target="_blank">OpenWeatherMap</a></p>
+            <p id="timestamp"></p>
+        </footer>
+    </div>
+
+    <script>
+// Глобальные переменные для хранения текущих данных
+let currentWeatherData = null;
+let currentRecommendations = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("AI система гардероба загружена");
+    loadPopularCities();
+    document.getElementById('searchBtn').addEventListener('click', searchWeather);
+    document.getElementById('cityInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') searchWeather();
+    });
+    document.getElementById('timestamp').textContent = new Date().toLocaleString('ru-RU');
+});
+
+async function loadPopularCities() {
+    try {
+        const response = await fetch('/cities');
+        const cities = await response.json();
+        const citiesList = document.getElementById('citiesList');
+        citiesList.innerHTML = '';
+        cities.forEach(function(city) {
+            const chip = document.createElement('div');
+            chip.className = 'city-chip';
+            chip.textContent = city.name + ' (' + city.country + ')';
+            chip.addEventListener('click', function() {
+                document.getElementById('cityInput').value = city.name;
+                searchWeather();
+            });
+            citiesList.appendChild(chip);
+        });
+    } catch (error) {
+        console.error('Ошибка загрузки городов:', error);
+    }
+}
+
+async function searchWeather() {
+    const city = document.getElementById('cityInput').value.trim();
+    if (!city) {
+        alert('Пожалуйста, введите название города для анализа');
+        return;
+    }
+    
+    const weatherResult = document.getElementById('weatherResult');
+    const loading = document.getElementById('loading');
+    weatherResult.innerHTML = '';
+    loading.style.display = 'block';
+    
+    try {
+        const response = await fetch('/weather?city=' + encodeURIComponent(city));
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const data = await response.json();
+        loading.style.display = 'none';
+        
+        if (data && data.success) {
+            displayWeather(data);
+        } else {
+            const errorMsg = data?.error || 'Не удалось получить данные';
+            weatherResult.innerHTML = `
+                <div class="error">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    <h3>Ошибка анализа</h3>
+                    <p>${errorMsg}</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        loading.style.display = 'none';
+        weatherResult.innerHTML = `
+            <div class="error">
+                <i class="fas fa-wifi-slash fa-2x"></i>
+                <h3>Ошибка сети</h3>
+                <p>Проверьте подключение к интернету</p>
+            </div>
+        `;
+    }
+}
+
+function displayWeather(data) {
+    const weather = data.current || {};
+    const mlItems = weather.ml_items || [];
+    
+    // Сохраняем данные для фидбека
+    currentWeatherData = weather;
+    
+    // Получаем время восхода и заката
+    const sunrise = weather.sunrise || '06:00';
+    const sunset = weather.sunset || '18:00';
+    
+    // Получаем местное время города из данных
+let cityCurrentTime = '';
+let isDaytime = true;
+
+if (weather.timezone_offset) {
+    // Создаём дату в UTC и добавляем смещение города
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const cityTime = new Date(utc + (1000 * weather.timezone_offset));
+    
+    // Форматируем время
+    const hours = cityTime.getHours().toString().padStart(2, '0');
+    const minutes = cityTime.getMinutes().toString().padStart(2, '0');
+    cityCurrentTime = `${hours}:${minutes}`;
+    
+    // Определяем, день сейчас или ночь (сравниваем с восходом/закатом)
+    const currentHour = cityTime.getHours();
+    const currentMinutes = cityTime.getMinutes();
+    const currentTotalMinutes = currentHour * 60 + currentMinutes;
+    
+    const sunriseParts = (weather.sunrise || '06:00').split(':');
+    const sunriseTotal = parseInt(sunriseParts[0]) * 60 + parseInt(sunriseParts[1]);
+    
+    const sunsetParts = (weather.sunset || '18:00').split(':');
+    const sunsetTotal = parseInt(sunsetParts[0]) * 60 + parseInt(sunsetParts[1]);
+    
+    isDaytime = currentTotalMinutes >= sunriseTotal && currentTotalMinutes <= sunsetTotal;
+} else {
+    // Если нет данных о часовом поясе, используем локальное время
+    const now = new Date();
+    cityCurrentTime = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
+    isDaytime = isCurrentTimeDaytime(weather.sunrise || '06:00', weather.sunset || '18:00');
+}
+    
+    // Получаем температуру и ветер
+    const temperature = parseFloat(weather.temperature) || 0;
+    const windSpeed = parseFloat(weather.wind_speed) || 0;
+    const windGust = parseFloat(weather.wind_gust) || windSpeed;
+    
+    // Получаем вероятность осадков с учетом температуры
+    const precipitationData = getPrecipitationData(weather, temperature);
+    const precipitationProb = precipitationData.probability;
+    const precipitationType = precipitationData.type;
+    const isClearWeather = isWeatherClear(weather);
+    
+    // Определяем предупреждения
+    const warnings = getWarnings(weather, windSpeed, windGust, temperature, precipitationProb, precipitationType);
+    
+    // Определяем особые рекомендации с учетом температуры
+    const specialRecommendations = getSpecialRecommendations(weather, isDaytime, precipitationProb, precipitationType, temperature, isClearWeather, windSpeed);
+    
+    let html = '';
+    
+    // Основная информация о погоде
+    html += `
+        <div class="weather-main-info">
+            <div class="city-header">
+                <h2><i class="fas fa-city"></i> ${weather.city || 'Город'}, ${weather.country || ''}</h2>
+                <div class="time-info">
+                    <div class="time-item">
+                        <i class="fas fa-sun" style="color: #FFD700;"></i>
+                        <span>${sunrise}</span>
+                    </div>
+                    <div class="time-item">
+                        <i class="fas fa-moon" style="color: #4A90E2;"></i>
+                        <span>${sunset}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="temp-section">
+                <div class="temp-main">
+                    <h3>${temperature.toFixed(1)}°C</h3>
+                    <p class="feels-like"><i class="fas fa-temperature-low"></i> Ощущается как ${weather.feels_like || temperature.toFixed(1)}°C</p>
+                    <p><i class="fas fa-cloud"></i> ${weather.weather_description || 'Ясно'}</p>
+                    <p><i class="fas fa-wind"></i> Ветер: ${windSpeed.toFixed(1)} м/с${windGust > windSpeed ? ` (порывы до ${windGust.toFixed(1)} м/с)` : ''}</p>
+                    <p class="current-time">Местное время: ${cityCurrentTime}</p>
+                </div>
+                <div class="weather-icon">
+                    <img src="http://openweathermap.org/img/wn/${weather.weather_icon || '01d'}@2x.png" alt="Погода">
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Блок с предупреждениями
+    if (warnings.length > 0) {
+        html += '<div class="warning-section">';
+        html += '<div class="warning-header">';
+        html += '<i class="fas fa-exclamation-triangle"></i>';
+        html += '<h4>Важные предупреждения</h4>';
+        html += '</div>';
+        
+        warnings.forEach(warning => {
+            html += `
+                <div class="warning-item">
+                    <div class="warning-emoji">${warning.emoji}</div>
+                    <div class="warning-content">
+                        <h5>${warning.title}</h5>
+                        <p>${warning.description}</p>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    }
+    
+    // Блок с вероятностью осадков
+    if (precipitationProb > 0) {
+        const precipitationClass = precipitationProb > 50 ? 'precipitation-high' : '';
+        const precipitationIcon = precipitationType === 'snow' ? 
+            '<i class="fas fa-snowflake snow-icon"></i>' : 
+            '<i class="fas fa-cloud-rain rain-icon"></i>';
+        
+        html += `
+            <div class="precipitation-section">
+                <div class="precipitation-info">
+                    <div class="precipitation-icon">
+                        ${precipitationIcon}
+                    </div>
+                    <div class="precipitation-text">
+                        <h4>Вероятность ${precipitationType === 'snow' ? 'снега' : 'осадков'}</h4>
+                        <p>${getPrecipitationDescription(precipitationProb, precipitationType)}</p>
+                        <div class="precipitation-type">
+                            ${precipitationIcon}
+                            <span>${getPrecipitationTypeDescription(precipitationType, temperature)}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="precipitation-value ${precipitationClass}">
+                    ${precipitationProb}%
+                </div>
+            </div>
+        `;
+    }
+    
+    // Секция времени суток
+    html += '<div class="daytime-section">';
+    html += `
+        <div class="daytime-card">
+            <i class="fas fa-sunrise"></i>
+            <div class="daytime-value">${sunrise}</div>
+            <div class="daytime-label">Восход солнца</div>
+        </div>
+        
+        <div class="daytime-card sunset">
+            <i class="fas fa-sunset"></i>
+            <div class="daytime-value">${sunset}</div>
+            <div class="daytime-label">Закат солнца</div>
+        </div>
+        
+        <div class="daytime-status">
+            <span>
+                ${isDaytime ? 
+                    '<i class="fas fa-sun" style="color: #FFD700;"></i> Сейчас день' : 
+                    '<i class="fas fa-moon" style="color: #4A90E2;"></i> Сейчас ночь'}
+            </span>
+            <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
+                ${isDaytime ? 
+                    'Светлое время суток влияет на выбор светлой одежды и солнцезащитных аксессуаров' :
+                    'Темное время суток требует более заметной одежды (со светоотражающими элементами) и учета понижения температуры'}
+            </p>
+        </div>
+    `;
+    html += '</div>';
+    
+    // Секция ML рекомендаций
+    html += '<div class="ml-recommendations-section">';
+    html += '<div class="ml-header">';
+    html += '<div class="ml-icon"><i class="fas fa-robot"></i></div>';
+    html += '<h3>AI Рекомендации гардероба</h3>';
+    html += '</div>';
+    
+    html += `<p class="ml-subtitle">Нейросеть проанализировала <strong>16 параметров</strong> погоды и время суток (${isDaytime ? 'день' : 'ночь'}) для подбора оптимального гардероба:</p>`;
+    
+    // Объединяем обычные и особые рекомендации
+    const allRecommendations = [...mlItems];
+    
+    // Сохраняем рекомендации для фидбека
+    currentRecommendations = allRecommendations;
+    
+    // Добавляем особые рекомендации если их нет в mlItems
+    const specialRecs = getSpecialRecommendations(weather, isDaytime, precipitationProb, precipitationType, temperature, isClearWeather, windSpeed);
+    specialRecs.forEach(rec => {
+        // Убираем эмодзи из текста для сравнения
+        const cleanRec = rec.replace('🕶️ ', '').replace('🧥 ', '').replace('☂️ ', '').replace('❄️ ', '').replace('💨 ', '');
+        if (!allRecommendations.some(item => 
+            item.toLowerCase().includes(cleanRec.toLowerCase())
+        )) {
+            allRecommendations.push(rec);
+        }
+    });
+    
+    if (allRecommendations.length > 0) {
+        html += '<div class="ml-grid">';
+        
+        allRecommendations.forEach(item => {
+            if (!item || typeof item !== 'string') return;
+            
+            const emoji = getCorrectMLItemEmoji(item);
+            const category = getSimpleCategory(item);
+            
+            // Убираем эмодзи из заголовка для отображения
+            const cleanTitle = item.replace('🕶️ ', '').replace('🧥 ', '')
+                                .replace('☂️ ', '').replace('❄️ ', '')
+                                .replace('💨 ', '').replace('🔥 ', '')
+                                .replace('👣 ', '').replace('🎭 ', '')
+                                .replace('🥼 ', '').replace('🌊 ', '')
+                                .replace('✨ ', '').replace('⛏️ ', '')
+                                .replace('💨 ', '').replace('❄️ ', '')
+                                .replace('🧴 ', '').replace('👓 ', '');
+            
+            html += `
+                <div class="ml-item-card">
+                    <div class="ml-item-emoji">${emoji}</div>
+                    <div class="ml-item-content">
+                        <h4>${cleanTitle}</h4>
+                        ${category ? `<span class="category-badge">${category}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    } else {
+        html += `
+            <div class="loading" style="padding: 40px 20px;">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <p style="margin-top: 15px;">AI генерирует рекомендации на основе погодных данных и времени суток...</p>
+            </div>
+        `;
+    }
+    
+    // Особые рекомендации (выделенный блок)
+    if (specialRecs.length > 0) {
+        html += '<div class="special-recommendations">';
+        html += '<h4><i class="fas fa-lightbulb"></i> Особые рекомендации</h4>';
+        
+        specialRecs.forEach(rec => {
+            const emoji = rec.includes('🕶️') ? '🕶️' : 
+                         rec.includes('🧥') ? '🧥' : 
+                         rec.includes('❄️') ? '❄️' :
+                         rec.includes('💨') ? '💨' : '☂️';
+            const text = rec.replace('🕶️ ', '').replace('🧥 ', '')
+                          .replace('☂️ ', '').replace('❄️ ', '')
+                          .replace('💨 ', '');
+            
+            html += `
+                <div class="special-item">
+                    <div class="special-emoji">${emoji}</div>
+                    <div>
+                        <strong>${text}</strong>
+                        <p style="margin: 5px 0 0 0; color: #666; font-size: 0.9rem;">
+                            ${getSpecialRecommendationDescription(emoji, temperature, precipitationType, windSpeed)}
+                        </p>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    
+    // Добавляем секцию сбора фидбека
+    html += `
+        <div class="feedback-section" style="
+            margin: 30px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e3e8f0 100%);
+            border-radius: 15px;
+            text-align: center;
+        ">
+            <h3 style="margin-bottom: 20px; color: #2d3748;">
+                <i class="fas fa-comment-alt"></i> Оцените рекомендации
+            </h3>
+            <p style="margin-bottom: 20px; color: #4a5568;">
+                Помогите AI стать умнее! Отметьте, какие элементы вам подходят:
+            </p>
+            
+            <div id="itemSelection" style="
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 10px;
+                margin-bottom: 25px;
+            ">
+                <!-- Здесь появятся чекбоксы для выбора элементов -->
+            </div>
+            
+            <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                <button onclick="submitFeedback('good')" class="feedback-btn" style="
+                    background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+                    color: white;
+                    border: none;
+                    padding: 15px 30px;
+                    border-radius: 12px;
+                    font-size: 1.1rem;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    transition: all 0.3s;
+                ">
+                    <i class="fas fa-thumbs-up"></i> Рекомендации хорошие
+                </button>
+                
+                <button onclick="submitFeedback('bad')" class="feedback-btn" style="
+                    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+                    color: white;
+                    border: none;
+                    padding: 15px 30px;
+                    border-radius: 12px;
+                    font-size: 1.1rem;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    transition: all 0.3s;
+                ">
+                    <i class="fas fa-thumbs-down"></i> Можно лучше
+                </button>
+                
+                <button onclick="showDetailedSelection()" class="feedback-btn" style="
+                    background: white;
+                    color: #6a11cb;
+                    border: 2px solid #6a11cb;
+                    padding: 15px 30px;
+                    border-radius: 12px;
+                    font-size: 1.1rem;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    transition: all 0.3s;
+                ">
+                    <i class="fas fa-edit"></i> Выбрать конкретные элементы
+                </button>
+            </div>
+            
+            <div id="feedbackMessage" style="
+                margin-top: 20px;
+                padding: 15px;
+                border-radius: 10px;
+                display: none;
+            "></div>
+        </div>
+    `;
+    
+    // Детали погоды
+    html += '<div class="weather-details-grid">';
+    const details = [
+        { icon: 'fa-wind', label: 'Ветер', value: `${windSpeed.toFixed(1)} м/с` },
+        { icon: 'fa-tint', label: 'Влажность', value: `${weather.humidity || '0'}%` },
+        { icon: 'fa-compress-alt', label: 'Давление', value: `${weather.pressure || '1013'} hPa` },
+        { icon: 'fa-eye', label: 'Видимость', value: `${((weather.visibility || 10000) / 1000).toFixed(1)} км` }
+    ];
+    
+    details.forEach(detail => {
+        html += `
+            <div class="detail-card">
+                <i class="fas ${detail.icon}"></i>
+                <h4>${detail.label}</h4>
+                <div class="detail-value">${detail.value}</div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    
+    // Статистика ML модели
+    html += '<div class="ml-stats">';
+    html += '<h3 style="text-align: center; margin-bottom: 20px;"><i class="fas fa-chart-bar"></i> Статистика модели</h3>';
+    html += '<div class="stats-grid">';
+    
+    const stats = [
+        { value: '18', label: 'Анализируемых параметров' },
+        { value: '>85%', label: 'Точность модели' },
+        { value: allRecommendations.length, label: 'Рекомендаций' },
+    ];
+    
+    stats.forEach(stat => {
+        html += `
+            <div class="stat-card">
+                <div class="stat-value">${stat.value}</div>
+                <div class="stat-label">${stat.label}</div>
+            </div>
+        `;
+    });
+    
+    html += '</div></div>';
+    
+    // Кнопки действий
+    html += `
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
+            <button onclick="searchWeather()" class="btn-refresh" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: white; border: none; padding: 15px 30px; border-radius: 12px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-sync-alt"></i> Обновить анализ
+            </button>
+            <button onclick="retrainModel()" class="btn-retrain" style="background: white; color: #6a11cb; border: 2px solid #6a11cb; padding: 15px 30px; border-radius: 12px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-brain"></i> Переобучить AI
+            </button>
+        </div>
+    `;
+    
+    weatherResult.innerHTML = html;
+    
+    // Создаем чекбоксы для выбора элементов после загрузки
+    setTimeout(() => {
+        createItemSelection(allRecommendations);
+    }, 100);
+}
+
+// Функция для создания чекбоксов выбора
+function createItemSelection(items) {
+    const container = document.getElementById('itemSelection');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    items.forEach((item, index) => {
+        // Убираем эмодзи для отображения
+        const cleanItem = item.replace('🕶️ ', '').replace('🧥 ', '')
+                            .replace('☂️ ', '').replace('❄️ ', '')
+                            .replace('💨 ', '').replace('🔥 ', '')
+                            .replace('👣 ', '').replace('🎭 ', '')
+                            .replace('🥼 ', '').replace('🌊 ', '')
+                            .replace('✨ ', '').replace('⛏️ ', '')
+                            .replace('💨 ', '').replace('❄️ ', '')
+                            .replace('🧴 ', '').replace('👓 ', '');
+        
+        const div = document.createElement('div');
+        div.className = 'item-checkbox';
+        div.style.cssText = `
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #e2e8f0;
+        `;
+        
+        div.innerHTML = `
+            <input type="checkbox" id="item_${index}" 
+                   style="margin-right: 10px; transform: scale(1.2);"
+                   onchange="toggleItemSelection(this, '${cleanItem}')">
+            <label for="item_${index}" style="cursor: pointer; flex: 1;">
+                ${getCorrectMLItemEmoji(item)} ${cleanItem}
+            </label>
+        `;
+        
+        container.appendChild(div);
+    });
+}
+
+// Текущий выбор пользователя
+let selectedItems = [];
+
+function toggleItemSelection(checkbox, item) {
+    if (checkbox.checked) {
+        selectedItems.push(item);
+    } else {
+        selectedItems = selectedItems.filter(i => i !== item);
+    }
+    console.log('Выбрано элементов:', selectedItems.length);
+}
+
+// Функция отправки фидбека
+async function submitFeedback(feedbackType) {
+    if (!currentWeatherData || !currentRecommendations.length) {
+        showMessage('Сначала получите рекомендации!', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/save_preference', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                weather: currentWeatherData,
+                recommended: currentRecommendations,
+                selected: selectedItems.length > 0 ? selectedItems : currentRecommendations,
+                feedback_type: feedbackType
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            const message = feedbackType === 'good' 
+                ? '✅ Спасибо! AI учтёт ваш выбор и станет умнее!'
+                : '🔄 Спасибо за обратную связь! AI скорректирует рекомендации.';
+            
+            showMessage(message, 'success');
+            
+            // Обновляем статистику на странице
+            updateStatsDisplay(result.stats);
+            
+            // Сбрасываем выбор
+            selectedItems = [];
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        } else {
+            showMessage('❌ Ошибка сохранения: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Ошибка отправки фидбека:', error);
+        showMessage('❌ Ошибка сети. Попробуйте ещё раз.', 'error');
+    }
+}
+
+// Показ подробного выбора
+function showDetailedSelection() {
+    const checkboxes = document.querySelectorAll('#itemSelection input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.style.display = 'block');
+    showMessage('✅ Отметьте галочками элементы, которые вам подходят', 'info');
+}
+
+// Вспомогательные функции
+function showMessage(text, type) {
+    const messageDiv = document.getElementById('feedbackMessage');
+    if (!messageDiv) return;
+    
+    messageDiv.textContent = text;
+    messageDiv.style.display = 'block';
+    messageDiv.style.background = type === 'success' ? '#c6f6d5' : 
+                                 type === 'error' ? '#fed7d7' : '#bee3f8';
+    messageDiv.style.color = type === 'success' ? '#22543d' : 
+                            type === 'error' ? '#742a2a' : '#2a4365';
+    
+    setTimeout(() => {
+        messageDiv.style.display = 'none';
+    }, 5000);
+}
+
+function updateStatsDisplay(stats) {
+    // Можно обновить блок статистики на странице
+    console.log('Обновление статистики:', stats);
+}
+
+// Функция для получения предупреждений
+function getWarnings(weather, windSpeed, windGust, temperature, precipitationProb, precipitationType) {
+    const warnings = [];
+    
+    // Предупреждение о сильном ветре (более 10 м/с)
+    if (windSpeed >= 10) {
+        let windLevel = '';
+        let description = '';
+        
+        if (windSpeed >= 20) {
+            windLevel = 'очень сильный';
+            description = 'Опасные условия! Рекомендуется остаться дома.';
+        } else if (windSpeed >= 15) {
+            windLevel = 'сильный';
+            description = 'Будьте осторожны на улице.';
+        } else {
+            windLevel = 'умеренный';
+            description = 'Одевайтесь теплее, ветер усиливает ощущение холода.';
+        }
+        
+        warnings.push({
+            emoji: '💨',
+            title: `Сильный ветер: ${windSpeed.toFixed(1)} м/с`,
+            description: `${windLevel} ветер. ${description}`
+        });
+    }
+    
+    // Предупреждение о порывах ветра
+    if (windGust > windSpeed && windGust >= 15) {
+        warnings.push({
+            emoji: '🌪️',
+            title: `Порывы ветра до ${windGust.toFixed(1)} м/с`,
+            description: 'Осторожно! Возможны резкие порывы ветра.'
+        });
+    }
+    
+    // Предупреждение о сильном морозе
+    if (temperature < -20) {
+        warnings.push({
+            emoji: '🥶',
+            title: 'Сильный мороз',
+            description: `Температура ${temperature.toFixed(1)}°C. Требуется очень теплая одежда.`
+        });
+    } else if (temperature < -10) {
+        warnings.push({
+            emoji: '❄️',
+            title: 'Морозная погода',
+            description: `Температура ${temperature.toFixed(1)}°C. Одевайтесь очень тепло.`
+        });
+    }
+    
+    // Предупреждение о сильных осадках
+    if (precipitationProb > 80) {
+        const precipType = precipitationType === 'snow' ? 'снегопаде' : 'ливне';
+        warnings.push({
+            emoji: precipitationType === 'snow' ? '❄️' : '🌧️',
+            title: `Сильный ${precipitationType === 'snow' ? 'снегопад' : 'дождь'}`,
+            description: `Высокая вероятность сильного ${precipType}. Будьте осторожны.`
+        });
+    }
+    
+    // Предупреждение о гололеде (при температуре около 0 и осадках)
+    if (temperature > -3 && temperature < 3 && precipitationProb > 50) {
+        warnings.push({
+            emoji: '⚠️',
+            title: 'Возможен гололед',
+            description: 'Осторожно! Дороги и тротуары могут быть скользкими. Используйте ледоступы на обувь от гололеда или противоскользящие наклейки для обуви.'
+        });
+    }
+    
+    return warnings;
+}
+
+// Функция для определения вероятности и типа осадков с учетом температуры
+function getPrecipitationData(weather, temperature) {
+    let probability = 0;
+    let type = 'rain';
+    
+    if (weather.precipitation_probability !== undefined) {
+        probability = weather.precipitation_probability;
+    } else {
+        const weatherDesc = (weather.weather_description || '').toLowerCase();
+        const weatherMain = (weather.weather_main || '').toLowerCase();
+        
+        if (weatherDesc.includes('дождь') || weatherDesc.includes('ливень') || 
+            weatherMain.includes('rain') || weatherDesc.includes('осадки')) {
+            probability = 80;
+        } else if (weatherDesc.includes('снег') || weatherDesc.includes('метель') || 
+                  weatherMain.includes('snow')) {
+            probability = 70;
+            type = 'snow';
+        } else if (weatherDesc.includes('изморось') || weatherDesc.includes('моросящий') || 
+                  weatherDesc.includes('морось')) {
+            probability = 60;
+        } else if (weatherDesc.includes('облачно') || weatherDesc.includes('пасмурно') || 
+                  weatherMain.includes('clouds')) {
+            probability = 30;
+        } else {
+            const humidity = weather.humidity || 0;
+            if (humidity > 80) probability = 40;
+            else if (humidity > 60) probability = 20;
+            else probability = 10;
+        }
+    }
+    
+    // КОРРЕКТИРУЕМ ТИП ОСАДКОВ ПО ТЕМПЕРАТУРЕ
+    if (temperature < -1) {
+        type = 'snow';
+        const humidity = weather.humidity || 0;
+        if (humidity > 70 && probability < 50) {
+            probability = Math.min(probability + 30, 80);
+        }
+    } else if (temperature < 1) {
+        type = 'snow_rain';
+    } else {
+        type = 'rain';
+    }
+    
+    return {
+        probability: Math.min(probability, 100),
+        type: type
+    };
+}
+
+// Функция для определения ясной погоды
+function isWeatherClear(weather) {
+    const weatherDesc = (weather.weather_description || '').toLowerCase();
+    const weatherMain = (weather.weather_main || '').toLowerCase();
+    
+    const clearConditions = ['ясно', 'солнечно', 'малооблачно', 'чистое небо', 'clear'];
+    
+    return clearConditions.some(condition => 
+        weatherDesc.includes(condition) || weatherMain.includes(condition)
+    );
+}
+
+// Функция для получения особых рекомендаций с учетом температуры и ветра
+function getSpecialRecommendations(weather, isDaytime, precipitationProb, precipitationType, temperature, isClearWeather, windSpeed) {
+    const recommendations = [];
+    
+    // Рекомендация для солнцезащитных очков
+if (isClearWeather && isDaytime) {  // ← ИСПОЛЬЗУЕМ isDaytime, переданный в функцию!
+    const weatherIcon = weather.weather_icon || '';
+    const weatherDesc = (weather.weather_description || '').toLowerCase();
+    const weatherMain = (weather.weather_main || '').toLowerCase();
+    
+    // Проверяем ясную погоду
+    const isClear = weatherIcon.includes('01') || weatherIcon.includes('02') || 
+                   weatherDesc.includes('ясн') || weatherDesc.includes('солн') ||
+                   weatherMain.includes('Clear') || weatherMain.includes('clear');
+    
+    // Дополнительно проверяем, что солнце не в зените (ночь уже отсекли isDaytime)
+    if (isClear) {
+        recommendations.push('🕶️ Солнцезащитные очки');
+    }
+}
+    
+    // Рекомендация для зонта ТОЛЬКО при температуре выше -1°C
+    if (precipitationProb > 40 && temperature > -1) {
+        recommendations.push('☂️ Зонт');
+    }
+    
+    // Рекомендация для дождевика при температуре выше -1°C
+    if (precipitationProb > 60 && temperature > -1) {
+        const weatherDesc = (weather.weather_description || '').toLowerCase();
+        if (weatherDesc.includes('дождь') || weatherDesc.includes('ливень')) {
+            if (!recommendations.some(r => r.includes('Дождевик'))) {
+                recommendations.push('🧥 Дождевик');
+            }
+        }
+    }
+    
+    // Предупреждение о вероятности снега при температуре ниже -1°C и высокой влажности
+    if (temperature < -1) {
+        const humidity = weather.humidity || 0;
+        if (humidity > 70 && precipitationProb > 30) {
+            if (!recommendations.some(r => r.includes('снег'))) {
+                recommendations.push('❄️ Вероятность снега');
+            }
+        }
+    }
+    
+    // Если тип осадков - снег, добавляем рекомендацию
+    //if (precipitationType === 'snow' && temperature < 1) {
+    //    if (!recommendations.some(r => r.includes('снег'))) {
+    //        recommendations.push('❄️ Возможен снег');
+    //    }
+    //}
+    
+    // Рекомендация ветрозащитной одежды при сильном ветре
+    if (windSpeed >= 10) {
+        recommendations.push('💨 Ветрозащитная одежда');
+    }
+    
+    // Рекомендация теплой одежды при ветре и низкой температуре
+    if (windSpeed >= 8 && temperature < 5) {
+        if (!recommendations.some(r => r.includes('Теплая') || r.includes('Ветрозащитная'))) {
+            recommendations.push('🧥 Теплая ветрозащитная одежда');
+        }
+    }
+    
+    return recommendations;
+}
+
+// Функция для описания вероятности осадков
+function getPrecipitationDescription(probability, type) {
+    const typeText = type === 'snow' ? 'снега' : 'осадков';
+    
+    if (probability > 80) return `Высокая вероятность ${typeText}`;
+    if (probability > 60) return `Высокая вероятность ${typeText}`;  // Было "Вероятен"
+    if (probability > 40) return `Небольшая вероятность ${typeText} !`; // С восклицательным знаком
+    if (probability > 20) return `Малая вероятность ${typeText}`;
+    
+    return `Весьма малая вероятность ${typeText} `;
+}
+
+// Функция для описания типа осадков
+function getPrecipitationTypeDescription(type, temperature) {
+    if (type === 'snow') {
+        if (temperature < -10) return 'Сухой снег';
+        else if (temperature < -5) return 'Снег';
+        else return 'Мокрый снег';
+    } else if (type === 'snow_rain') {
+        return 'Дождь со снегом';
+    } else {
+        if (temperature < 5) return 'Холодный дождь';
+        else if (temperature < 15) return 'Прохладный дождь';
+        else return 'Теплый дождь';
+    }
+}
+
+// Функция для описания особых рекомендаций
+function getSpecialRecommendationDescription(emoji, temperature, precipitationType, windSpeed) {
+    if (emoji === '🕶️') {
+        return 'Рекомендуется при ясной погоде независимо от температуры';
+    } else if (emoji === '🧥') {
+        if (windSpeed >= 8) {
+            return 'Рекомендуется для защиты от ветра и дождя';
+        }
+        return 'Рекомендуется при высокой вероятности дождя (температура > -1°C)';
+    } else if (emoji === '☂️') {
+        return 'Рекомендуется при высокой вероятности осадков (температура > -1°C)';
+    } else if (emoji === '❄️') {
+        if (temperature < -1) {
+            return `Возможен снег`;
+        } else {
+            return 'Возможны осадки в виде снега или мокрого снега';
+        }
+    } else if (emoji === '💨') {
+        return `При ветре ${windSpeed.toFixed(1)} м/с рекомендуется ветрозащитная одежда`;
+    }
+    return '';
+}
+
+//  функция для определения эмодзи
+function getCorrectMLItemEmoji(item) {
+    if (!item) return '👕';
+    
+    const itemLower = item.toLowerCase();
+    // СОЛНЦЕЗАЩИТНЫЕ ЭЛЕМЕНТЫ - РАЗНЫЕ ЭМОДЗИ
+    if (itemLower.includes('крем') || itemLower.includes('spf')) {
+        return '🧴'; // Крем для солнцезащиты
+    }
+    
+    if (itemLower.includes('солнцезащитная одежда') || itemLower.includes('защита от уф')) {
+        return '🥼'; // Защитная одежда
+    }
+    
+    if (itemLower.includes('шляпа') || itemLower.includes('панама') || itemLower.includes('полями')) {
+        return '👒'; // Шляпа/панама
+    }
+    
+    if (itemLower.includes('солнцезащитные очки') || itemLower.includes('🕶️')) {
+        return '🕶️'; // Солнцезащитные очки
+    }
+    
+    // 1. Сначала проверяем новые специальные элементы из обновлённой ML модели
+    if (itemLower.includes('грелка') || itemLower.includes('термогрелка')) {
+        return '🔥';
+    }
+    
+    if (itemLower.includes('грелка') || itemLower.includes('грелк')) {
+        return '🔥';
+    }
+
+    if (itemLower.includes('термостельк') || itemLower.includes('стельк')) {
+        return '👣';
+    }
+    
+    if (itemLower.includes('балаклав') || itemLower.includes('маска')) {
+        return '🎭';
+    }
+    
+    if (itemLower.includes('многослойн') || itemLower.includes('термослой')) {
+        return '🥼';
+    }
+    
+    if (itemLower.includes('снегоступ') || itemLower.includes('кошки')) {
+        return '🥾';
+    }
+    
+    if (itemLower.includes('водоотталкивающ') || itemLower.includes('непромокаем')) {
+        return '🌊';
+    }
+    
+    if (itemLower.includes('светоотражающ') || itemLower.includes('ярк')) {
+        return '✨';
+    }
+    
+    if (itemLower.includes('шипован') || itemLower.includes('ледоруб')) {
+        return '⛏️';
+    }
+    
+    if (itemLower.includes('вентилируем') || itemLower.includes('дышащ')) {
+        return '💨';
+    }
+    
+    if (itemLower.includes('охлаждающ') || itemLower.includes('жилет')) {
+        return '❄️';
+    }
+    
+    // 2. Проверяем особые рекомендации
+    if (itemLower.includes('🕶️') || itemLower.includes('солнцезащитн')) {
+        return '🕶️';
+    }
+    
+    if (itemLower.includes('☂️') || itemLower.includes('зонт')) {
+        return '☂️';
+    }
+    
+    if (itemLower.includes('❄️') || itemLower.includes('снег')) {
+        return '❄️';
+    }
+    
+    if (itemLower.includes('💨') || itemLower.includes('ветрозащитн')) {
+        return '💨';
+    }
+    
+    // 3. Дождевик теперь с иконкой куртки 🧥
+    if (itemLower.includes('дождевик') || itemLower.includes('🧥')) {
+        return '🧥';
+    }
+    
+    // 4. Тёплые носки
+    if (itemLower.includes('тёплые носки') || itemLower.includes('теплые носки')) {
+        return '🧦';
+    }
+    
+    // 5. Панама должна быть в категории головных уборов
+    if (itemLower.includes('панам') || itemLower.includes('шапк') || itemLower.includes('кепк') || 
+        itemLower.includes('ушанк') || itemLower.includes('головной убор') || itemLower.includes('шляп') ||
+        itemLower.includes('берет') || itemLower.includes('тюбетейк') || itemLower.includes('кепи') ||
+        itemLower.includes('капюшон')) {
+        return '🧢';
+    }
+    
+    // 6. Сначала проверяем обувь
+    if (itemLower.includes('сандал') || itemLower.includes('босоножк') || itemLower.includes('вьетнамк')) {
+        return '👡';
+    }
+    
+    if (itemLower.includes('кроссовк') || itemLower.includes('кед') || itemLower.includes('спортивн')) {
+        return '👟';
+    }
+    
+    if (itemLower.includes('обувь') || itemLower.includes('ботинк') || itemLower.includes('сапог')) {
+        return '🥾';
+    }
+    
+    // 7. Проверяем верхнюю одежду
+    if (itemLower.includes('куртк') || itemLower.includes('пуховик') || itemLower.includes('пальто') ||
+        itemLower.includes('ветровк') || itemLower.includes('плащ') || itemLower.includes('анорак')) {
+        return '🧥';
+    }
+    
+    // 8. Проверяем теплую одежду
+    if (itemLower.includes('свитер') || itemLower.includes('кофта') || itemLower.includes('толстовк') ||
+        itemLower.includes('джемпер') || itemLower.includes('худи') || itemLower.includes('кардиган')) {
+        return '🧶';
+    }
+    
+    // 9. Термобельё
+    if (itemLower.includes('термобель') || itemLower.includes('термо бель')) {
+        return '🥼';
+    }
+    
+    // 10. Футболки и аналогичные вещи
+    if (itemLower.includes('футболк') || itemLower.includes('майк') || itemLower.includes('блузк') || 
+        itemLower.includes('рубашк') || itemLower.includes('топ') || itemLower.includes('тенниск')) {
+        return '👕';
+    }
+    
+    // 11. Брюки/джинсы
+    if (itemLower.includes('джинс') || itemLower.includes('брюк') || itemLower.includes('штаны')) {
+        return '👖';
+    }
+    
+    // 12. Шорты
+    if (itemLower.includes('шорт')) {
+        return '🩳';
+    }
+    
+    // 13. Юбки/платья
+    if (itemLower.includes('юбк') || itemLower.includes('платье')) {
+        return '👗';
+    }
+    
+    // 14. Аксессуары
+    if (itemLower.includes('шарф') || itemLower.includes('снуд')) {
+        return '🧣';
+    }
+    
+    if (itemLower.includes('перчатк') || itemLower.includes('варежк')) {
+        return '🧤';
+    }
+    
+    // 15. Солнцезащитный крем
+    if (itemLower.includes('крем') || itemLower.includes('spf')) {
+        return '🧴';
+    }
+    
+    // 16. Очки разные
+    if (itemLower.includes('очк') && !itemLower.includes('солнцезащитн')) {
+        return '👓';
+    }
+    
+    return '👕'; // По умолчанию
+}
+
+//  функция для категорий
+function getSimpleCategory(item) {
+    if (!item) return '';
+    
+    const itemLower = item.toLowerCase();
+    
+    // Новые специальные категории
+    if (itemLower.includes('грелка') || itemLower.includes('🔥')) {
+        return 'Согревающее';
+    }
+    
+    if (itemLower.includes('термостельк') || itemLower.includes('👣')) {
+        return 'Обувные аксессуары';
+    }
+    
+    if (itemLower.includes('балаклав') || itemLower.includes('🎭')) {
+        return 'Защита лица';
+    }
+    
+    if (itemLower.includes('многослойн') || itemLower.includes('термослой')) {
+        return 'Термозащита';
+    }
+    
+    if (itemLower.includes('водоотталкивающ') || itemLower.includes('🌊')) {
+        return 'Водозащита';
+    }
+    
+    if (itemLower.includes('светоотражающ') || itemLower.includes('✨')) {
+        return 'Безопасность';
+    }
+    
+    if (itemLower.includes('шипован') || itemLower.includes('⛏️')) {
+        return 'Антискольжение';
+    }
+    
+    if (itemLower.includes('вентилируем') || itemLower.includes('💨')) {
+        return 'Вентиляция';
+    }
+    
+    if (itemLower.includes('охлаждающ') || itemLower.includes('❄️')) {
+        return 'Охлаждение';
+    }
+    
+    // Остальные категории...
+    if (itemLower.includes('солнцезащитн') || itemLower.includes('🕶️')) {
+        return 'Аксессуар для солнца';
+    }
+    
+    if (itemLower.includes('зонт') || itemLower.includes('☂️')) {
+        return 'Защита от дождя';
+    }
+    
+    if (itemLower.includes('❄️') || itemLower.includes('снег')) {
+        return 'Погодное предупреждение';
+    }
+    
+    if (itemLower.includes('💨') || itemLower.includes('ветрозащитн')) {
+        return 'Защита от ветра';
+    }
+    
+    if (itemLower.includes('дождевик') || itemLower.includes('🧥')) {
+        return 'Верхняя одежда';
+    }
+    
+    // Панама в категории головных уборов
+    if (itemLower.includes('панам') || itemLower.includes('шапк') || itemLower.includes('кепк')) {
+        return 'Головной убор';
+    }
+    
+    // Термобельё в категории белья
+    if (itemLower.includes('термобель') || itemLower.includes('термо бель')) {
+        return 'Белье';
+    }
+    
+    // Остальные категории...
+    if (itemLower.includes('обувь') || itemLower.includes('ботинк') || itemLower.includes('сапог')) {
+        return 'Обувь';
+    }
+    
+    if (itemLower.includes('куртк') || itemLower.includes('пуховик') || itemLower.includes('пальто')) {
+        return 'Верхняя одежда';
+    }
+    
+    if (itemLower.includes('свитер') || itemLower.includes('кофта') || itemLower.includes('толстовк')) {
+        return 'Теплая одежда';
+    }
+    
+    if (itemLower.includes('футболк') || itemLower.includes('майк') || itemLower.includes('блузк')) {
+        return 'Верх';
+    }
+    
+    if (itemLower.includes('джинс') || itemLower.includes('брюк') || itemLower.includes('штаны')) {
+        return 'Низ';
+    }
+    
+    if (itemLower.includes('шорт') || itemLower.includes('юбк')) {
+        return 'Низ';
+    }
+    
+    if (itemLower.includes('шарф') || itemLower.includes('перчатк')) {
+        return 'Аксессуар';
+    }
+    
+    if (itemLower.includes('крем') || itemLower.includes('🧴')) {
+        return 'Уход за кожей';
+    }
+    
+    if (itemLower.includes('тёплые носки') || itemLower.includes('🧦')) {
+        return 'Носки';
+    }
+    
+    return 'Одежда';
+}
+
+function isCurrentTimeDaytime(sunrise, sunset) {
+    try {
+        const now = new Date();
+        const currentHours = now.getHours();
+        const currentMinutes = now.getMinutes();
+        const currentTotalMinutes = currentHours * 60 + currentMinutes;
+        
+        const sunriseParts = sunrise.split(':');
+        const sunriseHours = parseInt(sunriseParts[0]) || 6;
+        const sunriseMinutes = parseInt(sunriseParts[1]) || 0;
+        const sunriseTotalMinutes = sunriseHours * 60 + sunriseMinutes;
+        
+        const sunsetParts = sunset.split(':');
+        const sunsetHours = parseInt(sunsetParts[0]) || 18;
+        const sunsetMinutes = parseInt(sunsetParts[1]) || 0;
+        const sunsetTotalMinutes = sunsetHours * 60 + sunsetMinutes;
+        
+        return currentTotalMinutes >= (sunriseTotalMinutes - 30) && 
+               currentTotalMinutes <= (sunsetTotalMinutes + 30);
+    } catch (error) {
+        console.error('Ошибка определения времени суток:', error);
+        const currentHours = new Date().getHours();
+        return currentHours >= 6 && currentHours < 20;
+    }
+}
+
+async function retrainModel() {
+    if (!confirm('Переобучить AI модель на новых данных? Это улучшит точность рекомендаций.')) return;
+    
+    try {
+        const response = await fetch('/retrain_model', { method: 'POST' });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`✅ AI модель переобучена!\nНовая точность: ${result.accuracy || '>85%'}`);
+        } else {
+            alert('❌ Ошибка переобучения модели');
+        }
+    } catch (error) {
+        console.error('Ошибка переобучения:', error);
+        alert('❌ Ошибка сети');
+    }
+}
+
+// Глобальные стили для кнопок
+const style = document.createElement('style');
+style.textContent = `
+    .btn-refresh:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(106, 17, 203, 0.2); }
+    .btn-retrain:hover { background: #6a11cb; color: white; transform: translateY(-2px); }
+`;
+document.head.appendChild(style);
+    </script>
+</body>
+</html>

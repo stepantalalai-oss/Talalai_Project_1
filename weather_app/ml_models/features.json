@@ -1,0 +1,1 @@
+{"features": ["temperature", "feels_like", "humidity", "wind_speed", "pressure", "visibility", "is_rain", "is_snow", "is_clear", "is_cloudy", "hour_of_day", "month", "season_winter", "season_spring", "season_summer", "season_autumn", "is_fog", "is_storm"]}
