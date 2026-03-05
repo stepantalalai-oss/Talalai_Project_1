@@ -22,16 +22,15 @@ class WardrobeMLRecommender:
         self.model = None
         self.scaler = StandardScaler()
         self.label_encoder = LabelEncoder()
-        # Обновляем список признаков, добавляем is_fog и is_storm сразу
+        
         self.features = [
             'temperature', 'feels_like', 'humidity', 'wind_speed',
             'pressure', 'visibility', 'is_rain', 'is_snow', 
             'is_clear', 'is_cloudy', 'hour_of_day', 'month',
             'season_winter', 'season_spring', 'season_summer', 'season_autumn',
-            'is_fog', 'is_storm'  # Добавляем сразу
+            'is_fog', 'is_storm'
         ]
         
-        # ЕДИНЫЙ гардероб для всего проекта
         self.outfit_categories = {
             0: "ЗИМНИЙ_ПОЛНЫЙ",
             1: "ХОЛОДНЫЙ_ЗАЩИТНЫЙ", 
@@ -43,7 +42,6 @@ class WardrobeMLRecommender:
             7: "ВЛАЖНЫЙ_ДЫШАЩИЙ"
         }
         
-        # ОБНОВЛЁННЫЙ и расширенный гардероб
         self.outfit_items = {
             "ЗИМНИЙ_ПОЛНЫЙ": [
                 "Пуховик", "Термобельё", "Тёплые штаны", 
@@ -80,7 +78,6 @@ class WardrobeMLRecommender:
             ]
         }
         
-        # СПЕЦИАЛЬНЫЕ РЕКОМЕНДАЦИИ для контекстных условий
         self.special_recommendations = {
             'rain_wind': ["Непромокаемая ветровка", "Водонепроницаемые перчатки"],
             'snow_wind': ["Маска от ветра", "Снегоступы", "Тёплые очки"],
@@ -91,7 +88,11 @@ class WardrobeMLRecommender:
             'freezing_rain': ["Противоскользящие насадки", "Ледоруб"]
         }
         
-        self.load_or_train()
+        # ВРЕМЕННО: принудительно создаём новую модель для Render
+        print("⚠️ Render: принудительное создание новой модели...")
+        self.train_model()
+        self.save_model()
+        # self.load_or_train()  # закомментировано
     
     def create_synthetic_dataset(self, num_samples=10000):
         """Создание синтетического датасета для обучения"""
