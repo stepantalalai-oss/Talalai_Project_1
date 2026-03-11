@@ -175,9 +175,9 @@ class WardrobeMLRecommender:
             return 0  # ЗИМНИЙ_ПОЛНЫЙ
         elif effective_temp < 0:
             return 1  # ХОЛОДНЫЙ_ЗАЩИТНЫЙ
-        elif effective_temp < 10:
+        elif effective_temp < 15:
             return 2  # ПРОХЛАДНЫЙ_СЛОЙНЫЙ
-        elif effective_temp < 20:
+        elif effective_temp < 25:
             return 3  # ТЕПЛЫЙ_ЛЕГКИЙ
         elif effective_temp < 30:
             return 4  # ЖАРКИЙ_МИНИМАЛЬНЫЙ
